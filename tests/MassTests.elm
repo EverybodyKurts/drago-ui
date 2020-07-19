@@ -18,8 +18,8 @@ suite =
                                 |> Mass.lb
                     in
                     lb
-                        |> Mass.lbToKg
-                        |> Mass.kgToLb
+                        |> Mass.toKg
+                        |> Mass.toLb
                         |> Expect.equal lb
             ]
         ]
