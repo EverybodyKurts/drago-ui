@@ -1,7 +1,8 @@
-module Bootstrap exposing (col, col4, fluidContainer, inputGroup, inputGroupAppend, row)
+module Bootstrap exposing (col, col4, fluidContainer, row, textInput)
 
-import Html exposing (Html, div)
-import Html.Attributes exposing (class)
+import Html exposing (Html, div, input)
+import Html.Attributes exposing (attribute, class, placeholder, type_)
+import Html.Events exposing (onInput)
 
 
 fluidContainer : List (Html msg) -> Html msg
@@ -24,11 +25,13 @@ col4 =
     div [ class "col-4" ]
 
 
-inputGroup : List (Html msg) -> Html msg
-inputGroup =
-    div [ class "input-group" ]
-
-
-inputGroupAppend : List (Html msg) -> Html msg
-inputGroupAppend =
-    div [ class "input-group-append" ]
+textInput : (String -> msg) -> String -> String -> List (Html msg) -> Html msg
+textInput inputMsg placeholderText for =
+    input
+        [ type_ "text"
+        , class "form-control"
+        , placeholder placeholderText
+        , attribute "aria-label" placeholderText
+        , attribute "aria-describedby" for
+        , onInput inputMsg
+        ]
