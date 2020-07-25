@@ -1,9 +1,10 @@
 port module Main exposing (Model, Msg(..), add1, init, main, toJs, update, view)
 
+import Bootstrap exposing (col, col4, fluidContainer, row)
+import Bootstrap.Button as Button
+import Bootstrap.InputGroup as InputGroup exposing (inputGroup)
 import Browser
-import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
+import Html exposing (Html, text)
 import Http exposing (Error(..))
 import Json.Decode as Decode
 
@@ -45,6 +46,8 @@ type Msg
     | Set Int
     | TestServer
     | OnServerResponse (Result Http.Error String)
+    | InputMass String
+    | ToggleMassUnit
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -72,6 +75,12 @@ update message model =
 
                 Err err ->
                     ( { model | serverMessage = "Error: " ++ httpErrorToString err }, Cmd.none )
+
+        InputMass massInput ->
+            ( model, Cmd.none )
+
+        ToggleMassUnit ->
+            ( model, Cmd.none )
 
 
 httpErrorToString : Http.Error -> String
@@ -111,36 +120,17 @@ add1 model =
 
 view : Model -> Html Msg
 view model =
-    div [ class "container" ]
-        [ header []
-            [ -- img [ src "/images/logo.png" ] []
-              span [ class "logo" ] []
-            , h1 [] [ text "Elm 0.19.1 Webpack Starter, with hot-reloading" ]
-            ]
-        , p [] [ text "Click on the button below to increment the state." ]
-        , div [ class "pure-g" ]
-            [ div [ class "pure-u-1-3" ]
-                [ button
-                    [ class "pure-button pure-button-primary"
-                    , onClick Inc
+    fluidContainer
+        [ row
+            [ col4
+                [ inputGroup
+                    [ Bootstrap.textInput InputMass "Weight" "mass"
+                    , InputGroup.append
+                        [ Button.outlineSecondary ToggleMassUnit "mass" (text "lb")
+                        ]
                     ]
-                    [ text "+ 1" ]
-                , text <| String.fromInt model.counter
                 ]
-            , div [ class "pure-u-1-3" ] []
-            , div [ class "pure-u-1-3" ]
-                [ button
-                    [ class "pure-button pure-button-primary"
-                    , onClick TestServer
-                    ]
-                    [ text "ping dev server" ]
-                , text model.serverMessage
-                ]
-            ]
-        , p [] [ text "Then make a change to the source code and see how the state is retained after you recompile." ]
-        , p []
-            [ text "And now don't forget to add a star to the Github repo "
-            , a [ href "https://github.com/simonh1000/elm-webpack-starter" ] [ text "elm-webpack-starter" ]
+            , Bootstrap.col []
             ]
         ]
 
@@ -158,7 +148,7 @@ main =
         , update = update
         , view =
             \m ->
-                { title = "Elm 0.19 starter"
+                { title = "Body Metrics"
                 , body = [ view m ]
                 }
         , subscriptions = \_ -> Sub.none
