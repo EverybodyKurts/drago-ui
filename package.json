@@ -46,7 +46,10 @@
         "webpack-merge": "^4.2.2"
     },
     "dependencies": {
-        "purecss": "^1.0.1"
+        "add": "^2.0.6",
+        "bootstrap": "^4.5.0",
+        "purecss": "^1.0.1",
+        "yarn": "^1.22.4"
     },
     "prettier": {
         "tabWidth": 4
