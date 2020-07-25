@@ -26,15 +26,30 @@ port toJs : String -> Cmd msg
 -- ---------------------------
 
 
+type MassUnit
+    = Lb
+    | Kg
+
+
 type alias Model =
     { counter : Int
     , serverMessage : String
+    , massInput : Maybe String
+    , massUnit : MassUnit
+    , bfInput : Maybe String
     }
 
 
 init : Int -> ( Model, Cmd Msg )
 init flags =
-    ( { counter = flags, serverMessage = "" }, Cmd.none )
+    ( { counter = flags
+      , serverMessage = ""
+      , massInput = Nothing
+      , massUnit = Lb
+      , bfInput = Nothing
+      }
+    , Cmd.none
+    )
 
 
 
@@ -124,6 +139,41 @@ add1 model =
 -- ---------------------------
 
 
+massUnitToString : MassUnit -> String
+massUnitToString massUnit =
+    case massUnit of
+        Lb ->
+            "lb"
+
+        Kg ->
+            "kg"
+
+
+massUnitToText : MassUnit -> Html msg
+massUnitToText =
+    massUnitToString >> text
+
+
+massInputs : Model -> Html Msg
+massInputs model =
+    inputGroup
+        [ Bootstrap.textInput InputMass "Weight" "mass"
+        , InputGroup.append
+            [ Button.outlineSecondary ToggleMassUnit "mass" (massUnitToText model.massUnit)
+            ]
+        ]
+
+
+bfPercentageInput : Model -> Html Msg
+bfPercentageInput model =
+    inputGroup
+        [ Bootstrap.textInput InputMass "Body Fat %" "bodyfat-percentage"
+        , InputGroup.append
+            [ InputGroup.text "bodyfat-percentage" [ text "%" ]
+            ]
+        ]
+
+
 view : Model -> Html Msg
 view model =
     fluidContainer
@@ -133,24 +183,10 @@ view model =
                     [ Card.primaryHeader [ text "Body Composition" ]
                     , Card.body
                         [ Form.row
-                            [ Bootstrap.col
-                                [ inputGroup
-                                    [ Bootstrap.textInput InputMass "Weight" "mass"
-                                    , InputGroup.append
-                                        [ Button.outlineSecondary ToggleMassUnit "mass" (text "lb")
-                                        ]
-                                    ]
-                                ]
+                            [ Bootstrap.col [ massInputs model ]
                             ]
                         , Form.row
-                            [ Bootstrap.col
-                                [ inputGroup
-                                    [ Bootstrap.textInput InputMass "Body Fat %" "bodyfat-percentage"
-                                    , InputGroup.append
-                                        [ InputGroup.text "bodyfat-percentage" [ text "%" ]
-                                        ]
-                                    ]
-                                ]
+                            [ Bootstrap.col [ bfPercentageInput model ]
                             ]
                         ]
                     ]

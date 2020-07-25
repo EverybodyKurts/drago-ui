@@ -1,4 +1,4 @@
-module Mass exposing (Mass, kg, lb, map, map2, mapPercentage, toKg, toLb)
+module Mass exposing (kg, lb, map, map2, mapPercentage, toKg, toLb)
 
 import Percentage exposing (Percentage)
 import Util.Float
