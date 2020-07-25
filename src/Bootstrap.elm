@@ -25,7 +25,7 @@ col4 =
     div [ class "col-4" ]
 
 
-textInput : (String -> msg) -> String -> String -> List (Html msg) -> Html msg
+textInput : (String -> msg) -> String -> String -> Html msg
 textInput inputMsg placeholderText for =
     input
         [ type_ "text"
@@ -35,3 +35,4 @@ textInput inputMsg placeholderText for =
         , attribute "aria-describedby" for
         , onInput inputMsg
         ]
+        []
