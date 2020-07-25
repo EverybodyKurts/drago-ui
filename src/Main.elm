@@ -2,6 +2,8 @@ port module Main exposing (Model, Msg(..), add1, init, main, toJs, update, view)
 
 import Bootstrap exposing (col, col4, fluidContainer, row)
 import Bootstrap.Button as Button
+import Bootstrap.Card as Card exposing (card)
+import Bootstrap.Form as Form
 import Bootstrap.InputGroup as InputGroup exposing (inputGroup)
 import Browser
 import Html exposing (Html, text)
@@ -48,6 +50,7 @@ type Msg
     | OnServerResponse (Result Http.Error String)
     | InputMass String
     | ToggleMassUnit
+    | InputBodyFatPercentage String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -80,6 +83,9 @@ update message model =
             ( model, Cmd.none )
 
         ToggleMassUnit ->
+            ( model, Cmd.none )
+
+        InputBodyFatPercentage percentageInput ->
             ( model, Cmd.none )
 
 
@@ -123,10 +129,29 @@ view model =
     fluidContainer
         [ row
             [ col4
-                [ inputGroup
-                    [ Bootstrap.textInput InputMass "Weight" "mass"
-                    , InputGroup.append
-                        [ Button.outlineSecondary ToggleMassUnit "mass" (text "lb")
+                [ card
+                    [ Card.primaryHeader [ text "Body Composition" ]
+                    , Card.body
+                        [ Form.row
+                            [ Bootstrap.col
+                                [ inputGroup
+                                    [ Bootstrap.textInput InputMass "Weight" "mass"
+                                    , InputGroup.append
+                                        [ Button.outlineSecondary ToggleMassUnit "mass" (text "lb")
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        , Form.row
+                            [ Bootstrap.col
+                                [ inputGroup
+                                    [ Bootstrap.textInput InputMass "Body Fat %" "bodyfat-percentage"
+                                    , InputGroup.append
+                                        [ InputGroup.text "bodyfat-percentage" [ text "%" ]
+                                        ]
+                                    ]
+                                ]
+                            ]
                         ]
                     ]
                 ]
