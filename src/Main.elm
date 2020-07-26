@@ -156,10 +156,18 @@ massUnitToText =
 
 massInputs : Model -> Html Msg
 massInputs model =
+    let
+        btn =
+            { id = "mass"
+            , onClickMsg = ToggleMassUnit
+            , value = massUnitToText model.massUnit
+            , disabled = False
+            }
+    in
     inputGroup
         [ Bootstrap.textInput InputMass "Weight" "mass"
         , InputGroup.append
-            [ Button.outlineSecondary ToggleMassUnit "mass" (massUnitToText model.massUnit)
+            [ Button.outlineSecondary btn
             ]
         ]
 
