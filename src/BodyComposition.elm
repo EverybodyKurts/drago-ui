@@ -1,4 +1,4 @@
-module BodyMeasurement exposing (BodyMeasurement, bodyFatMass, leanMusclessMass)
+module BodyComposition exposing (BodyMeasurement, bodyFatMass, leanMusclessMass)
 
 import Mass exposing (Mass)
 import Percentage exposing (Percentage)
