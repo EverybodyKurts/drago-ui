@@ -1,4 +1,4 @@
-module Mass exposing (kg, lb, map, map2, mapPercentage, toKg, toLb)
+module Mass exposing (Mass, isKg, isLb, kg, lb, map, map2, mapPercentage, toFloat, toKg, toLb, toggle, update)
 
 import Percentage exposing (Percentage)
 import Util.Float
@@ -17,6 +17,36 @@ kg =
 lb : Float -> Mass
 lb =
     abs >> Util.Float.round 2 >> Lb
+
+
+update : Float -> Mass -> Mass
+update amt mass =
+    case mass of
+        Lb _ ->
+            lb amt
+
+        Kg _ ->
+            kg amt
+
+
+isKg : Mass -> Bool
+isKg mass =
+    case mass of
+        Kg _ ->
+            True
+
+        _ ->
+            False
+
+
+isLb : Mass -> Bool
+isLb mass =
+    case mass of
+        Lb _ ->
+            True
+
+        _ ->
+            False
 
 
 toFloat : Mass -> Float
@@ -51,6 +81,16 @@ toLb mass =
 
         _ ->
             mass
+
+
+toggle : Mass -> Mass
+toggle mass =
+    case mass of
+        Lb _ ->
+            toKg mass
+
+        _ ->
+            toLb mass
 
 
 map : (Float -> Float) -> Mass -> Mass
