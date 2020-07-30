@@ -5,7 +5,7 @@ type Percentage
     = Percentage Float
 
 
-{-| Create a percentage from a float. 0 is the lowes allowed value.
+{-| Create a percentage from a float. 0 is the lowest allowed value.
 -}
 fromFloat : Float -> Percentage
 fromFloat =
