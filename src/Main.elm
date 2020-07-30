@@ -1,7 +1,7 @@
 port module Main exposing (Model, Msg(..), add1, init, main, toJs, update, view)
 
 import Bootstrap exposing (col, col4, fluidContainer, row)
-import Bootstrap.Button as Button
+import Bootstrap.Button
 import Bootstrap.Card as Card exposing (card)
 import Bootstrap.Form as Form
 import Bootstrap.InputGroup as InputGroup exposing (inputGroup)
@@ -9,6 +9,7 @@ import Browser
 import Html exposing (Html, text)
 import Http exposing (Error(..))
 import Json.Decode as Decode
+import Mass.Input exposing (MassInput)
 
 
 
@@ -26,16 +27,10 @@ port toJs : String -> Cmd msg
 -- ---------------------------
 
 
-type MassUnit
-    = Lb
-    | Kg
-
-
 type alias Model =
     { counter : Int
     , serverMessage : String
-    , massInput : Maybe String
-    , massUnit : MassUnit
+    , massInput : MassInput
     , bfInput : Maybe String
     }
 
@@ -44,8 +39,7 @@ init : Int -> ( Model, Cmd Msg )
 init flags =
     ( { counter = flags
       , serverMessage = ""
-      , massInput = Nothing
-      , massUnit = Lb
+      , massInput = Mass.Input.pristine
       , bfInput = Nothing
       }
     , Cmd.none
@@ -63,7 +57,7 @@ type Msg
     | Set Int
     | TestServer
     | OnServerResponse (Result Http.Error String)
-    | InputMass String
+    | UpdateMassAmount String
     | ToggleMassUnit
     | InputBodyFatPercentage String
 
@@ -94,11 +88,21 @@ update message model =
                 Err err ->
                     ( { model | serverMessage = "Error: " ++ httpErrorToString err }, Cmd.none )
 
-        InputMass massInput ->
-            ( model, Cmd.none )
+        UpdateMassAmount updatedAmount ->
+            let
+                updatedMassInput =
+                    model.massInput
+                        |> Mass.Input.updateAmount updatedAmount
+            in
+            ( { model | massInput = updatedMassInput }, Cmd.none )
 
         ToggleMassUnit ->
-            ( model, Cmd.none )
+            let
+                updatedMassInput =
+                    model.massInput
+                        |> Mass.Input.toggleUnit
+            in
+            ( { model | massInput = updatedMassInput }, Cmd.none )
 
         InputBodyFatPercentage percentageInput ->
             ( model, Cmd.none )
@@ -139,43 +143,18 @@ add1 model =
 -- ---------------------------
 
 
-massUnitToString : MassUnit -> String
-massUnitToString massUnit =
-    case massUnit of
-        Lb ->
-            "lb"
-
-        Kg ->
-            "kg"
-
-
-massUnitToText : MassUnit -> Html msg
-massUnitToText =
-    massUnitToString >> text
-
-
-massInputs : Model -> Html Msg
-massInputs model =
+bfPercentageInput : Model -> Html Msg
+bfPercentageInput model =
     let
-        btn =
-            { id = "mass"
-            , onClickMsg = ToggleMassUnit
-            , value = massUnitToText model.massUnit
-            , disabled = False
+        bfInput =
+            { inputMsg = InputBodyFatPercentage
+            , placeholder = "Bodyfat %"
+            , for = "bodyfat-percentage"
+            , value = "12.0"
             }
     in
     inputGroup
-        [ Bootstrap.textInput InputMass "Weight" "mass"
-        , InputGroup.append
-            [ Button.outlineSecondary btn
-            ]
-        ]
-
-
-bfPercentageInput : Model -> Html Msg
-bfPercentageInput model =
-    inputGroup
-        [ Bootstrap.textInput InputMass "Body Fat %" "bodyfat-percentage"
+        [ Bootstrap.textInput bfInput
         , InputGroup.append
             [ InputGroup.text "bodyfat-percentage" [ text "%" ]
             ]
@@ -191,7 +170,7 @@ view model =
                     [ Card.primaryHeader [ text "Body Composition" ]
                     , Card.body
                         [ Form.row
-                            [ Bootstrap.col [ massInputs model ]
+                            [ Bootstrap.col [ Mass.Input.html ToggleMassUnit UpdateMassAmount model.massInput ]
                             ]
                         , Form.row
                             [ Bootstrap.col [ bfPercentageInput model ]
