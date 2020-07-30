@@ -1,8 +1,16 @@
-module Bootstrap exposing (col, col4, fluidContainer, row, textInput)
+module Bootstrap exposing (TextInput, col, col4, fluidContainer, row, textInput)
 
 import Html exposing (Html, div, input)
 import Html.Attributes exposing (attribute, class, placeholder, type_)
 import Html.Events exposing (onInput)
+
+
+type alias TextInput msg =
+    { placeholder : String
+    , inputMsg : String -> msg
+    , for : String
+    , value : String
+    }
 
 
 fluidContainer : List (Html msg) -> Html msg
@@ -25,14 +33,15 @@ col4 =
     div [ class "col-4" ]
 
 
-textInput : (String -> msg) -> String -> String -> Html msg
-textInput inputMsg placeholderText for =
+textInput : TextInput msg -> Html msg
+textInput { inputMsg, placeholder, for, value } =
     input
         [ type_ "text"
         , class "form-control"
-        , placeholder placeholderText
-        , attribute "aria-label" placeholderText
+        , Html.Attributes.placeholder placeholder
+        , attribute "aria-label" placeholder
         , attribute "aria-describedby" for
         , onInput inputMsg
+        , Html.Attributes.value value
         ]
         []
