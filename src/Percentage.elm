@@ -1,4 +1,4 @@
-module Percentage exposing (Percentage, fromFloat, map2, toDecimal)
+module Percentage exposing (Percentage, fromFloat, map2, toDecimal, toFloat, toString)
 
 
 type Percentage
@@ -9,7 +9,7 @@ type Percentage
 -}
 fromFloat : Float -> Percentage
 fromFloat =
-    max 0 >> Percentage
+    clamp 0 100 >> Percentage
 
 
 map2 : (Float -> Float -> Float) -> Percentage -> Percentage -> Percentage
@@ -25,3 +25,13 @@ map2 fn (Percentage pct1) (Percentage pct2) =
 toDecimal : Percentage -> Float
 toDecimal (Percentage pct) =
     pct * 0.01
+
+
+toFloat : Percentage -> Float
+toFloat (Percentage flt) =
+    flt
+
+
+toString : Percentage -> String
+toString (Percentage flt) =
+    flt |> String.fromFloat
