@@ -1,4 +1,4 @@
-module Mass.Input exposing (MassInput, amountInput, html, pristine, toggleUnit, unitButton, updateAmount)
+module Mass.Input exposing (MassInput, amountInputHtml, html, pristine, toggleUnit, unitButton, updateAmount)
 
 import Bootstrap exposing (TextInput)
 import Bootstrap.Button as Button
@@ -138,8 +138,8 @@ unitButton toggleMsg massInput =
         }
 
 
-amountInput : (String -> msg) -> MassInput -> Html msg
-amountInput inputMsg massInput =
+amountInputHtml : (String -> msg) -> MassInput -> Html msg
+amountInputHtml inputMsg massInput =
     let
         val =
             case massInput of
@@ -166,7 +166,7 @@ amountInput inputMsg massInput =
 html : msg -> (String -> msg) -> MassInput -> Html msg
 html toggleUnitMsg updateAmountMsg massInput =
     inputGroup
-        [ amountInput updateAmountMsg massInput
+        [ amountInputHtml updateAmountMsg massInput
         , InputGroup.append
             [ unitButton toggleUnitMsg massInput
             ]
