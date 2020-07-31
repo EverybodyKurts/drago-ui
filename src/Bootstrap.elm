@@ -1,7 +1,7 @@
 module Bootstrap exposing (TextInput, col, col4, fluidContainer, row, textInput)
 
 import Html exposing (Html, div, input)
-import Html.Attributes exposing (attribute, class, placeholder, type_)
+import Html.Attributes exposing (attribute, class, type_)
 import Html.Events exposing (onInput)
 
 

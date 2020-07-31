@@ -1,7 +1,7 @@
 module Bootstrap.Button exposing (Button, outlineSecondary)
 
 import Html exposing (Html, button)
-import Html.Attributes exposing (class, id, type_)
+import Html.Attributes exposing (class, type_)
 import Html.Events exposing (onClick)
 
 
