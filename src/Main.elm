@@ -1,15 +1,14 @@
 port module Main exposing (Model, Msg(..), add1, init, main, toJs, update, view)
 
 import Bootstrap exposing (col, col4, fluidContainer, row)
-import Bootstrap.Button
 import Bootstrap.Card as Card exposing (card)
 import Bootstrap.Form as Form
-import Bootstrap.InputGroup as InputGroup exposing (inputGroup)
 import Browser
 import Html exposing (Html, text)
 import Http exposing (Error(..))
 import Json.Decode as Decode
 import Mass.Input exposing (MassInput)
+import Percentage.Input exposing (PercentageInput)
 
 
 
@@ -31,7 +30,7 @@ type alias Model =
     { counter : Int
     , serverMessage : String
     , massInput : MassInput
-    , bfInput : Maybe String
+    , bfInput : PercentageInput
     }
 
 
@@ -40,7 +39,7 @@ init flags =
     ( { counter = flags
       , serverMessage = ""
       , massInput = Mass.Input.pristine
-      , bfInput = Nothing
+      , bfInput = Percentage.Input.pristine
       }
     , Cmd.none
     )
@@ -59,7 +58,7 @@ type Msg
     | OnServerResponse (Result Http.Error String)
     | UpdateMassAmount String
     | ToggleMassUnit
-    | InputBodyFatPercentage String
+    | UpdateBfPercentage String
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -104,8 +103,13 @@ update message model =
             in
             ( { model | massInput = updatedMassInput }, Cmd.none )
 
-        InputBodyFatPercentage percentageInput ->
-            ( model, Cmd.none )
+        UpdateBfPercentage bfInput ->
+            let
+                updatedBfInput =
+                    bfInput
+                        |> Percentage.Input.update
+            in
+            ( { model | bfInput = updatedBfInput }, Cmd.none )
 
 
 httpErrorToString : Http.Error -> String
@@ -143,24 +147,6 @@ add1 model =
 -- ---------------------------
 
 
-bfPercentageInput : Model -> Html Msg
-bfPercentageInput model =
-    let
-        bfInput =
-            { inputMsg = InputBodyFatPercentage
-            , placeholder = "Bodyfat %"
-            , for = "bodyfat-percentage"
-            , value = "12.0"
-            }
-    in
-    inputGroup
-        [ Bootstrap.textInput bfInput
-        , InputGroup.append
-            [ InputGroup.text "bodyfat-percentage" [ text "%" ]
-            ]
-        ]
-
-
 view : Model -> Html Msg
 view model =
     fluidContainer
@@ -173,7 +159,7 @@ view model =
                             [ Bootstrap.col [ Mass.Input.html ToggleMassUnit UpdateMassAmount model.massInput ]
                             ]
                         , Form.row
-                            [ Bootstrap.col [ bfPercentageInput model ]
+                            [ Bootstrap.col [ Percentage.Input.html UpdateBfPercentage model.bfInput ]
                             ]
                         ]
                     ]
