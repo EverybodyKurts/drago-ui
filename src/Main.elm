@@ -156,10 +156,19 @@ view model =
                     [ Card.primaryHeader [ text "Body Composition" ]
                     , Card.body
                         [ Form.row
-                            [ Bootstrap.col [ Mass.Input.html ToggleMassUnit UpdateMassAmount model.massInput ]
+                            [ Bootstrap.col
+                                [ Mass.Input.html
+                                    ToggleMassUnit
+                                    UpdateMassAmount
+                                    model.massInput
+                                ]
                             ]
                         , Form.row
-                            [ Bootstrap.col [ Percentage.Input.html UpdateBfPercentage model.bfInput ]
+                            [ Bootstrap.col
+                                [ Percentage.Input.html
+                                    UpdateBfPercentage
+                                    model.bfInput
+                                ]
                             ]
                         ]
                     ]
