@@ -1,4 +1,4 @@
-module Percentage.Input exposing (PercentageInput, html, pristine, update)
+module Percentage.Input exposing (PercentageInput, ValidationError, html, pristine, update, validate)
 
 import Bootstrap
 import Bootstrap.InputGroup as InputGroup exposing (inputGroup)
@@ -17,14 +17,36 @@ pristine =
     Pristine
 
 
-update : String -> PercentageInput
-update updatedPercentage =
-    case String.toFloat updatedPercentage of
-        Just pct ->
-            Valid (Percentage.fromFloat pct)
+type ValidationError
+    = PercentageInputIsEmpty
+    | PercentageInputNotNumber String
 
-        Nothing ->
-            Invalid updatedPercentage
+
+validate : PercentageInput -> Result ValidationError Percentage
+validate pctInput =
+    case pctInput of
+        Pristine ->
+            Err PercentageInputIsEmpty
+
+        Invalid pctString ->
+            case String.toFloat pctString of
+                Just pct ->
+                    Ok (Percentage.fromFloat pct)
+
+                Nothing ->
+                    Err (PercentageInputNotNumber pctString)
+
+        Valid pct ->
+            Ok pct
+
+
+update : String -> PercentageInput
+update updatedPct =
+    if String.isEmpty updatedPct then
+        Pristine
+
+    else
+        Invalid updatedPct
 
 
 html : (String -> msg) -> PercentageInput -> Html msg
