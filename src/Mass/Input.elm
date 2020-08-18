@@ -15,7 +15,7 @@ type Unit
 
 type MassInput
     = Pristine Unit
-    | Invalid Unit String
+    | Invalid { unit : Unit, amount : String }
     | Valid Mass
 
 
@@ -69,17 +69,17 @@ validate massInput =
         Pristine _ ->
             Err MassInputIsEmpty
 
-        Invalid unit amtInput ->
-            if String.isEmpty amtInput then
+        Invalid { unit, amount } ->
+            if String.isEmpty amount then
                 Err MassInputIsEmpty
 
             else
-                case String.toFloat amtInput of
+                case String.toFloat amount of
                     Just amt ->
                         Ok (toMass unit amt)
 
                     Nothing ->
-                        Err (MassInputNotNumber amtInput)
+                        Err (MassInputNotNumber amount)
 
         Valid mass ->
             Ok mass
@@ -89,13 +89,13 @@ updateAmount : String -> MassInput -> MassInput
 updateAmount updatedAmount massInput =
     case massInput of
         Pristine unit ->
-            Invalid unit updatedAmount
+            Invalid { unit = unit, amount = updatedAmount }
 
-        Invalid unit _ ->
-            Invalid unit updatedAmount
+        Invalid input ->
+            Invalid { input | amount = updatedAmount }
 
         Valid mass ->
-            Invalid (unitFromMass mass) updatedAmount
+            Invalid { unit = unitFromMass mass, amount = updatedAmount }
 
 
 updateAmountAndValidate : String -> MassInput -> Result ValidationError Mass
@@ -118,8 +118,8 @@ toggleUnit massInput =
         Pristine unit ->
             Pristine (toggle unit)
 
-        Invalid unit amt ->
-            Invalid (toggle unit) amt
+        Invalid ({ unit } as input) ->
+            Invalid { input | unit = toggle unit }
 
         Valid mass ->
             Valid (Mass.toggle mass)
@@ -133,7 +133,7 @@ unitButton toggleMsg massInput =
                 Pristine unit ->
                     ( False, unitToHtml unit )
 
-                Invalid unit _ ->
+                Invalid { unit } ->
                     ( True, unitToHtml unit )
 
                 Valid mass ->
@@ -155,8 +155,8 @@ amountInputHtml inputMsg massInput =
                 Pristine _ ->
                     ""
 
-                Invalid _ invalidValue ->
-                    invalidValue
+                Invalid { amount } ->
+                    amount
 
                 Valid mass ->
                     mass |> Mass.toFloat |> String.fromFloat
