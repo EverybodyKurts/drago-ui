@@ -1,10 +1,11 @@
-module Mass.Input exposing (MassInput, amountInputHtml, html, pristine, toggleUnit, unitButton, updateAmount)
+module Mass.Input exposing (MassInput, ValidationError, amountInputHtml, html, pristine, toggleUnit, unitButton, updateAmount, updateAmountAndValidate, validate)
 
 import Bootstrap exposing (TextInput)
 import Bootstrap.Button as Button
 import Bootstrap.InputGroup as InputGroup exposing (inputGroup)
 import Html exposing (Html, text)
 import Mass exposing (Mass)
+import String
 
 
 type Unit
@@ -16,6 +17,11 @@ type MassInput
     = Pristine Unit
     | Invalid Unit String
     | Valid Mass
+
+
+type ValidationError
+    = MassInputIsEmpty
+    | MassInputNotNumber String
 
 
 pristine : MassInput
@@ -57,41 +63,44 @@ toMass unit =
             Mass.kg
 
 
+validate : MassInput -> Result ValidationError Mass
+validate massInput =
+    case massInput of
+        Pristine _ ->
+            Err MassInputIsEmpty
+
+        Invalid unit amtInput ->
+            if String.isEmpty amtInput then
+                Err MassInputIsEmpty
+
+            else
+                case String.toFloat amtInput of
+                    Just amt ->
+                        Ok (toMass unit amt)
+
+                    Nothing ->
+                        Err (MassInputNotNumber amtInput)
+
+        Valid mass ->
+            Ok mass
+
+
 updateAmount : String -> MassInput -> MassInput
 updateAmount updatedAmount massInput =
-    case ( String.isEmpty updatedAmount, massInput ) of
-        ( True, Pristine unit ) ->
-            Pristine unit
+    case massInput of
+        Pristine unit ->
+            Invalid unit updatedAmount
 
-        ( True, Invalid unit _ ) ->
-            Pristine unit
+        Invalid unit _ ->
+            Invalid unit updatedAmount
 
-        ( True, Valid mass ) ->
-            Pristine (mass |> unitFromMass)
+        Valid mass ->
+            Invalid (unitFromMass mass) updatedAmount
 
-        ( False, Pristine unit ) ->
-            case String.toFloat updatedAmount of
-                Just amt ->
-                    Valid (toMass unit amt)
 
-                Nothing ->
-                    Invalid unit updatedAmount
-
-        ( False, Invalid unit _ ) ->
-            case String.toFloat updatedAmount of
-                Just amt ->
-                    Valid (toMass unit amt)
-
-                Nothing ->
-                    Invalid unit updatedAmount
-
-        ( False, Valid mass ) ->
-            case String.toFloat updatedAmount of
-                Just amt ->
-                    Valid (Mass.update amt mass)
-
-                Nothing ->
-                    Invalid (unitFromMass mass) updatedAmount
+updateAmountAndValidate : String -> MassInput -> Result ValidationError Mass
+updateAmountAndValidate updatedAmount =
+    updateAmount updatedAmount >> validate
 
 
 toggleUnit : MassInput -> MassInput
