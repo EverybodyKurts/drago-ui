@@ -1,22 +1,9 @@
-port module Main exposing (Model, Msg(..), init, main, toJs, update, view)
+module Main exposing (Model, Msg(..), init, main, update, view)
 
 import BodyComposition.Form exposing (BodyCompositionForm)
 import Bootstrap exposing (col, col4, fluidContainer, row)
 import Browser
 import Html exposing (Html)
-import Http exposing (Error(..))
-import Json.Decode as Decode
-import Mass.Input
-import Percentage.Input
-
-
-
--- ---------------------------
--- PORTS
--- ---------------------------
-
-
-port toJs : String -> Cmd msg
 
 
 
@@ -37,9 +24,11 @@ init flags =
     ( { counter = flags
       , serverMessage = ""
       , bodyCompositionForm =
-            { massInput = Mass.Input.pristine { updateAmountMsg = UpdateMassAmount, toggleUnitMsg = ToggleMassUnit }
-            , bodyFatInput = Percentage.Input.pristine { updateMsg = UpdateBfPercentage }
-            }
+            BodyComposition.Form.pristine
+                { updateMassAmountMsg = UpdateMassAmount
+                , toggleMassUnitMsg = ToggleMassUnit
+                , updateBodyFatMsg = UpdateBfPercentage
+                }
       }
     , Cmd.none
     )
@@ -52,10 +41,7 @@ init flags =
 
 
 type Msg
-    = Set Int
-    | TestServer
-    | OnServerResponse (Result Http.Error String)
-    | UpdateMassAmount String
+    = UpdateMassAmount String
     | ToggleMassUnit
     | UpdateBfPercentage String
 
@@ -63,26 +49,6 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     case message of
-        Set m ->
-            ( { model | counter = m }, toJs "Hello Js" )
-
-        TestServer ->
-            let
-                expect =
-                    Http.expectJson OnServerResponse (Decode.field "result" Decode.string)
-            in
-            ( model
-            , Http.get { url = "/test", expect = expect }
-            )
-
-        OnServerResponse res ->
-            case res of
-                Ok r ->
-                    ( { model | serverMessage = r }, Cmd.none )
-
-                Err err ->
-                    ( { model | serverMessage = "Error: " ++ httpErrorToString err }, Cmd.none )
-
         UpdateMassAmount updatedAmount ->
             let
                 updatedForm =
@@ -106,25 +72,6 @@ update message model =
                         |> BodyComposition.Form.updateBodyFat bfInput
             in
             ( { model | bodyCompositionForm = updatedForm }, Cmd.none )
-
-
-httpErrorToString : Http.Error -> String
-httpErrorToString err =
-    case err of
-        BadUrl url ->
-            "BadUrl: " ++ url
-
-        Timeout ->
-            "Timeout"
-
-        NetworkError ->
-            "NetworkError"
-
-        BadStatus _ ->
-            "BadStatus"
-
-        BadBody s ->
-            "BadBody: " ++ s
 
 
 

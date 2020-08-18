@@ -1,4 +1,4 @@
-module BodyComposition.Form exposing (BodyCompositionForm, ValidationError, card, toggleMassUnit, updateBodyFat, updateMassAmount, validate)
+module BodyComposition.Form exposing (BodyCompositionForm, Events, ValidationError, card, pristine, toggleMassUnit, updateBodyFat, updateMassAmount, validate)
 
 import BodyComposition exposing (BodyComposition)
 import Bootstrap
@@ -7,6 +7,13 @@ import Bootstrap.Form as Form
 import Html exposing (Html, text)
 import Mass.Input exposing (MassInput)
 import Percentage.Input exposing (PercentageInput)
+
+
+type alias Events msg =
+    { updateMassAmountMsg : String -> msg
+    , toggleMassUnitMsg : msg
+    , updateBodyFatMsg : String -> msg
+    }
 
 
 type alias BodyCompositionForm msg =
@@ -18,6 +25,13 @@ type alias BodyCompositionForm msg =
 type ValidationError
     = MassValidationError Mass.Input.ValidationError
     | PctValidationError Percentage.Input.ValidationError
+
+
+pristine : Events msg -> BodyCompositionForm msg
+pristine { updateMassAmountMsg, toggleMassUnitMsg, updateBodyFatMsg } =
+    { massInput = Mass.Input.pristine { updateAmountMsg = updateMassAmountMsg, toggleUnitMsg = toggleMassUnitMsg }
+    , bodyFatInput = Percentage.Input.pristine { updateMsg = updateBodyFatMsg }
+    }
 
 
 updateMassAmount : String -> BodyCompositionForm msg -> BodyCompositionForm msg
