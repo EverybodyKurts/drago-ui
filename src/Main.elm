@@ -1,4 +1,4 @@
-port module Main exposing (Model, Msg(..), add1, init, main, toJs, update, view)
+port module Main exposing (Model, Msg(..), init, main, toJs, update, view)
 
 import Bootstrap exposing (col, col4, fluidContainer, row)
 import Bootstrap.Card as Card exposing (card)
@@ -52,8 +52,7 @@ init flags =
 
 
 type Msg
-    = Inc
-    | Set Int
+    = Set Int
     | TestServer
     | OnServerResponse (Result Http.Error String)
     | UpdateMassAmount String
@@ -64,9 +63,6 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update message model =
     case message of
-        Inc ->
-            ( add1 model, toJs "Hello Js" )
-
         Set m ->
             ( { model | counter = m }, toJs "Hello Js" )
 
@@ -131,20 +127,33 @@ httpErrorToString err =
             "BadBody: " ++ s
 
 
-{-| increments the counter
-
-    add1 5 --> 6
-
--}
-add1 : Model -> Model
-add1 model =
-    { model | counter = model.counter + 1 }
-
-
 
 -- ---------------------------
 -- VIEW
 -- ---------------------------
+
+
+bodyCompositionCard model =
+    card
+        [ Card.primaryHeader [ text "Body Composition" ]
+        , Card.body
+            [ Form.row
+                [ Bootstrap.col
+                    [ Mass.Input.html
+                        ToggleMassUnit
+                        UpdateMassAmount
+                        model.massInput
+                    ]
+                ]
+            , Form.row
+                [ Bootstrap.col
+                    [ Percentage.Input.html
+                        UpdateBfPercentage
+                        model.bfInput
+                    ]
+                ]
+            ]
+        ]
 
 
 view : Model -> Html Msg
@@ -152,27 +161,7 @@ view model =
     fluidContainer
         [ row
             [ col4
-                [ card
-                    [ Card.primaryHeader [ text "Body Composition" ]
-                    , Card.body
-                        [ Form.row
-                            [ Bootstrap.col
-                                [ Mass.Input.html
-                                    ToggleMassUnit
-                                    UpdateMassAmount
-                                    model.massInput
-                                ]
-                            ]
-                        , Form.row
-                            [ Bootstrap.col
-                                [ Percentage.Input.html
-                                    UpdateBfPercentage
-                                    model.bfInput
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
+                [ bodyCompositionCard model ]
             , Bootstrap.col []
             ]
         ]
