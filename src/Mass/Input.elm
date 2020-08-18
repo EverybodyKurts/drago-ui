@@ -13,10 +13,23 @@ type Unit
     | Kg
 
 
-type MassInput
+type State
     = Pristine Unit
     | Invalid { unit : Unit, amount : String }
     | Valid Mass
+
+
+type alias Events msg =
+    { updateAmountMsg : String -> msg
+    , toggleUnitMsg : msg
+    }
+
+
+type alias MassInput msg =
+    { updateAmountMsg : String -> msg
+    , toggleUnitMsg : msg
+    , state : State
+    }
 
 
 type ValidationError
@@ -24,9 +37,12 @@ type ValidationError
     | MassInputNotNumber String
 
 
-pristine : MassInput
-pristine =
-    Pristine Lb
+pristine : Events msg -> MassInput msg
+pristine { updateAmountMsg, toggleUnitMsg } =
+    { updateAmountMsg = updateAmountMsg
+    , toggleUnitMsg = toggleUnitMsg
+    , state = Pristine Lb
+    }
 
 
 unitFromMass : Mass -> Unit
@@ -63,9 +79,9 @@ toMass unit =
             Mass.kg
 
 
-validate : MassInput -> Result ValidationError Mass
-validate massInput =
-    case massInput of
+validate : MassInput msg -> Result ValidationError Mass
+validate { state } =
+    case state of
         Pristine _ ->
             Err MassInputIsEmpty
 
@@ -85,26 +101,26 @@ validate massInput =
             Ok mass
 
 
-updateAmount : String -> MassInput -> MassInput
-updateAmount updatedAmount massInput =
-    case massInput of
+updateAmount : String -> MassInput msg -> MassInput msg
+updateAmount updatedAmount ({ state } as massInput) =
+    case state of
         Pristine unit ->
-            Invalid { unit = unit, amount = updatedAmount }
+            { massInput | state = Invalid { unit = unit, amount = updatedAmount } }
 
         Invalid input ->
-            Invalid { input | amount = updatedAmount }
+            { massInput | state = Invalid { input | amount = updatedAmount } }
 
         Valid mass ->
-            Invalid { unit = unitFromMass mass, amount = updatedAmount }
+            { massInput | state = Invalid { unit = unitFromMass mass, amount = updatedAmount } }
 
 
-updateAmountAndValidate : String -> MassInput -> Result ValidationError Mass
+updateAmountAndValidate : String -> MassInput msg -> Result ValidationError Mass
 updateAmountAndValidate updatedAmount =
     updateAmount updatedAmount >> validate
 
 
-toggleUnit : MassInput -> MassInput
-toggleUnit massInput =
+toggleUnit : MassInput msg -> MassInput msg
+toggleUnit ({ state } as massInput) =
     let
         toggle unit =
             case unit of
@@ -114,22 +130,22 @@ toggleUnit massInput =
                 Kg ->
                     Lb
     in
-    case massInput of
+    case state of
         Pristine unit ->
-            Pristine (toggle unit)
+            { massInput | state = Pristine (toggle unit) }
 
         Invalid ({ unit } as input) ->
-            Invalid { input | unit = toggle unit }
+            { massInput | state = Invalid { input | unit = toggle unit } }
 
         Valid mass ->
-            Valid (Mass.toggle mass)
+            { massInput | state = Valid (Mass.toggle mass) }
 
 
-unitButton : msg -> MassInput -> Html msg
-unitButton toggleMsg massInput =
+unitButton : MassInput msg -> Html msg
+unitButton { toggleUnitMsg, state } =
     let
         ( disabled, unitHtml ) =
-            case massInput of
+            case state of
                 Pristine unit ->
                     ( False, unitToHtml unit )
 
@@ -141,17 +157,17 @@ unitButton toggleMsg massInput =
     in
     Button.outlineSecondary
         { id = "mass"
-        , onClickMsg = toggleMsg
+        , onClickMsg = toggleUnitMsg
         , value = unitHtml
         , disabled = disabled
         }
 
 
-amountInputHtml : (String -> msg) -> MassInput -> Html msg
-amountInputHtml inputMsg massInput =
+amountInputHtml : MassInput msg -> Html msg
+amountInputHtml { updateAmountMsg, state } =
     let
         val =
-            case massInput of
+            case state of
                 Pristine _ ->
                     ""
 
@@ -163,7 +179,7 @@ amountInputHtml inputMsg massInput =
 
         textInput : TextInput msg
         textInput =
-            { inputMsg = inputMsg
+            { inputMsg = updateAmountMsg
             , placeholder = "Weight"
             , for = "mass"
             , value = val
@@ -172,11 +188,11 @@ amountInputHtml inputMsg massInput =
     Bootstrap.textInput textInput
 
 
-html : msg -> (String -> msg) -> MassInput -> Html msg
-html toggleUnitMsg updateAmountMsg massInput =
+html : MassInput msg -> Html msg
+html massInput =
     inputGroup
-        [ amountInputHtml updateAmountMsg massInput
+        [ amountInputHtml massInput
         , InputGroup.append
-            [ unitButton toggleUnitMsg massInput
+            [ unitButton massInput
             ]
         ]

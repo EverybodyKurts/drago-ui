@@ -1,13 +1,17 @@
-module BodyComposition.Form exposing (Form, ValidationError, toggleMassUnit, updateMassAmount, updatePercentage, validate)
+module BodyComposition.Form exposing (BodyCompositionForm, ValidationError, card, toggleMassUnit, updateBodyFat, updateMassAmount, validate)
 
 import BodyComposition exposing (BodyComposition)
+import Bootstrap
+import Bootstrap.Card as Card
+import Bootstrap.Form as Form
+import Html exposing (Html, text)
 import Mass.Input exposing (MassInput)
 import Percentage.Input exposing (PercentageInput)
 
 
-type alias Form =
-    { massInput : MassInput
-    , percentageInput : PercentageInput
+type alias BodyCompositionForm msg =
+    { massInput : MassInput msg
+    , bodyFatInput : PercentageInput msg
     }
 
 
@@ -16,30 +20,30 @@ type ValidationError
     | PctValidationError Percentage.Input.ValidationError
 
 
-updateMassAmount : String -> Form -> Form
+updateMassAmount : String -> BodyCompositionForm msg -> BodyCompositionForm msg
 updateMassAmount updatedAmount ({ massInput } as form) =
     { form
         | massInput = massInput |> Mass.Input.updateAmount updatedAmount
     }
 
 
-toggleMassUnit : Form -> Form
+toggleMassUnit : BodyCompositionForm msg -> BodyCompositionForm msg
 toggleMassUnit ({ massInput } as form) =
     { form
-        | massInput = massInput |> Mass.Input.toggleUnit
+        | massInput = Mass.Input.toggleUnit massInput
     }
 
 
-updatePercentage : String -> Form -> Form
-updatePercentage updatedPct form =
+updateBodyFat : String -> BodyCompositionForm msg -> BodyCompositionForm msg
+updateBodyFat updatedPct ({ bodyFatInput } as form) =
     { form
-        | percentageInput = Percentage.Input.update updatedPct
+        | bodyFatInput = bodyFatInput |> Percentage.Input.update updatedPct
     }
 
 
-validate : Form -> Result (List ValidationError) BodyComposition
-validate { massInput, percentageInput } =
-    case ( Mass.Input.validate massInput, Percentage.Input.validate percentageInput ) of
+validate : BodyCompositionForm msg -> Result (List ValidationError) BodyComposition
+validate { massInput, bodyFatInput } =
+    case ( Mass.Input.validate massInput, Percentage.Input.validate bodyFatInput ) of
         ( Ok mass, Ok pct ) ->
             Ok (BodyComposition mass pct)
 
@@ -51,3 +55,24 @@ validate { massInput, percentageInput } =
 
         ( _, Err pctError ) ->
             Err [ PctValidationError pctError ]
+
+
+card : BodyCompositionForm msg -> Html msg
+card { massInput, bodyFatInput } =
+    Card.card
+        [ Card.primaryHeader [ text "Body Composition" ]
+        , Card.body
+            [ Form.row
+                [ Bootstrap.col
+                    [ Mass.Input.html
+                        massInput
+                    ]
+                ]
+            , Form.row
+                [ Bootstrap.col
+                    [ Percentage.Input.html
+                        bodyFatInput
+                    ]
+                ]
+            ]
+        ]

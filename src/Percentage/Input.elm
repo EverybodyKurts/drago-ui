@@ -1,4 +1,4 @@
-module Percentage.Input exposing (PercentageInput, ValidationError, html, pristine, update, validate)
+module Percentage.Input exposing (Events, PercentageInput, ValidationError, html, pristine, update, validate)
 
 import Bootstrap
 import Bootstrap.InputGroup as InputGroup exposing (inputGroup)
@@ -6,15 +6,26 @@ import Html exposing (Html, text)
 import Percentage exposing (Percentage)
 
 
-type PercentageInput
+type alias Events msg =
+    { updateMsg : String -> msg
+    }
+
+
+type State
     = Pristine
     | Invalid String
     | Valid Percentage
 
 
-pristine : PercentageInput
-pristine =
-    Pristine
+type alias PercentageInput msg =
+    { updateMsg : String -> msg
+    , state : State
+    }
+
+
+pristine : Events msg -> PercentageInput msg
+pristine { updateMsg } =
+    { updateMsg = updateMsg, state = Pristine }
 
 
 type ValidationError
@@ -22,9 +33,9 @@ type ValidationError
     | PercentageInputNotNumber String
 
 
-validate : PercentageInput -> Result ValidationError Percentage
-validate pctInput =
-    case pctInput of
+validate : PercentageInput msg -> Result ValidationError Percentage
+validate { state } =
+    case state of
         Pristine ->
             Err PercentageInputIsEmpty
 
@@ -40,20 +51,20 @@ validate pctInput =
             Ok pct
 
 
-update : String -> PercentageInput
-update updatedPct =
+update : String -> PercentageInput msg -> PercentageInput msg
+update updatedPct input =
     if String.isEmpty updatedPct then
-        Pristine
+        { input | state = Pristine }
 
     else
-        Invalid updatedPct
+        { input | state = Invalid updatedPct }
 
 
-html : (String -> msg) -> PercentageInput -> Html msg
-html updateMsg pctInput =
+html : PercentageInput msg -> Html msg
+html { updateMsg, state } =
     let
         val =
-            case pctInput of
+            case state of
                 Invalid str ->
                     str
 

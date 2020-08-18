@@ -1,14 +1,13 @@
 port module Main exposing (Model, Msg(..), init, main, toJs, update, view)
 
+import BodyComposition.Form exposing (BodyCompositionForm)
 import Bootstrap exposing (col, col4, fluidContainer, row)
-import Bootstrap.Card as Card exposing (card)
-import Bootstrap.Form as Form
 import Browser
-import Html exposing (Html, text)
+import Html exposing (Html)
 import Http exposing (Error(..))
 import Json.Decode as Decode
-import Mass.Input exposing (MassInput)
-import Percentage.Input exposing (PercentageInput)
+import Mass.Input
+import Percentage.Input
 
 
 
@@ -29,8 +28,7 @@ port toJs : String -> Cmd msg
 type alias Model =
     { counter : Int
     , serverMessage : String
-    , massInput : MassInput
-    , bfInput : PercentageInput
+    , bodyCompositionForm : BodyCompositionForm Msg
     }
 
 
@@ -38,8 +36,10 @@ init : Int -> ( Model, Cmd Msg )
 init flags =
     ( { counter = flags
       , serverMessage = ""
-      , massInput = Mass.Input.pristine
-      , bfInput = Percentage.Input.pristine
+      , bodyCompositionForm =
+            { massInput = Mass.Input.pristine { updateAmountMsg = UpdateMassAmount, toggleUnitMsg = ToggleMassUnit }
+            , bodyFatInput = Percentage.Input.pristine { updateMsg = UpdateBfPercentage }
+            }
       }
     , Cmd.none
     )
@@ -85,27 +85,27 @@ update message model =
 
         UpdateMassAmount updatedAmount ->
             let
-                updatedMassInput =
-                    model.massInput
-                        |> Mass.Input.updateAmount updatedAmount
+                updatedForm =
+                    model.bodyCompositionForm
+                        |> BodyComposition.Form.updateMassAmount updatedAmount
             in
-            ( { model | massInput = updatedMassInput }, Cmd.none )
+            ( { model | bodyCompositionForm = updatedForm }, Cmd.none )
 
         ToggleMassUnit ->
             let
-                updatedMassInput =
-                    model.massInput
-                        |> Mass.Input.toggleUnit
+                updatedForm =
+                    model.bodyCompositionForm
+                        |> BodyComposition.Form.toggleMassUnit
             in
-            ( { model | massInput = updatedMassInput }, Cmd.none )
+            ( { model | bodyCompositionForm = updatedForm }, Cmd.none )
 
         UpdateBfPercentage bfInput ->
             let
-                updatedBfInput =
-                    bfInput
-                        |> Percentage.Input.update
+                updatedForm =
+                    model.bodyCompositionForm
+                        |> BodyComposition.Form.updateBodyFat bfInput
             in
-            ( { model | bfInput = updatedBfInput }, Cmd.none )
+            ( { model | bodyCompositionForm = updatedForm }, Cmd.none )
 
 
 httpErrorToString : Http.Error -> String
@@ -133,35 +133,12 @@ httpErrorToString err =
 -- ---------------------------
 
 
-bodyCompositionCard model =
-    card
-        [ Card.primaryHeader [ text "Body Composition" ]
-        , Card.body
-            [ Form.row
-                [ Bootstrap.col
-                    [ Mass.Input.html
-                        ToggleMassUnit
-                        UpdateMassAmount
-                        model.massInput
-                    ]
-                ]
-            , Form.row
-                [ Bootstrap.col
-                    [ Percentage.Input.html
-                        UpdateBfPercentage
-                        model.bfInput
-                    ]
-                ]
-            ]
-        ]
-
-
 view : Model -> Html Msg
 view model =
     fluidContainer
         [ row
             [ col4
-                [ bodyCompositionCard model ]
+                [ BodyComposition.Form.card model.bodyCompositionForm ]
             , Bootstrap.col []
             ]
         ]
