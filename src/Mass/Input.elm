@@ -28,8 +28,8 @@ type alias MassInput msg =
 
 
 type ValidationError
-    = MassInputIsEmpty
-    | MassInputNotNumber String
+    = AmountEmpty
+    | AmountNotNumber String
 
 
 pristine : Events msg -> MassInput msg
@@ -44,11 +44,11 @@ validate : MassInput msg -> Result ValidationError Mass
 validate { state } =
     case state of
         Pristine _ ->
-            Err MassInputIsEmpty
+            Err AmountEmpty
 
         Invalid { unit, amount } ->
             if String.isEmpty amount then
-                Err MassInputIsEmpty
+                Err AmountEmpty
 
             else
                 case String.toFloat amount of
@@ -56,7 +56,7 @@ validate { state } =
                         Ok <| Mass.Unit.toMass unit amt
 
                     Nothing ->
-                        Err <| MassInputNotNumber amount
+                        Err <| AmountNotNumber amount
 
         Valid mass ->
             Ok mass
