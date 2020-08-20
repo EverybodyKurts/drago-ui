@@ -1,16 +1,11 @@
 module Mass.Input exposing (MassInput, ValidationError, amountInputHtml, html, pristine, toggleUnit, unitButton, updateAmount, updateAmountAndValidate, validate)
 
 import Bootstrap exposing (TextInput)
-import Bootstrap.Button as Button
 import Bootstrap.InputGroup as InputGroup exposing (inputGroup)
-import Html exposing (Html, text)
+import Html exposing (Html)
 import Mass exposing (Mass)
+import Mass.Unit exposing (Unit(..))
 import String
-
-
-type Unit
-    = Lb
-    | Kg
 
 
 type State
@@ -45,40 +40,6 @@ pristine { updateAmountMsg, toggleUnitMsg } =
     }
 
 
-unitFromMass : Mass -> Unit
-unitFromMass mass =
-    if Mass.isKg mass then
-        Kg
-
-    else
-        Lb
-
-
-unitToString : Unit -> String
-unitToString unit =
-    case unit of
-        Lb ->
-            "lb"
-
-        Kg ->
-            "kg"
-
-
-unitToHtml : Unit -> Html msg
-unitToHtml =
-    unitToString >> text
-
-
-toMass : Unit -> Float -> Mass
-toMass unit =
-    case unit of
-        Lb ->
-            Mass.lb
-
-        Kg ->
-            Mass.kg
-
-
 validate : MassInput msg -> Result ValidationError Mass
 validate { state } =
     case state of
@@ -92,10 +53,10 @@ validate { state } =
             else
                 case String.toFloat amount of
                     Just amt ->
-                        Ok (toMass unit amt)
+                        Ok <| Mass.Unit.toMass unit amt
 
                     Nothing ->
-                        Err (MassInputNotNumber amount)
+                        Err <| MassInputNotNumber amount
 
         Valid mass ->
             Ok mass
@@ -111,7 +72,7 @@ updateAmount updatedAmount ({ state } as massInput) =
             { massInput | state = Invalid { input | amount = updatedAmount } }
 
         Valid mass ->
-            { massInput | state = Invalid { unit = unitFromMass mass, amount = updatedAmount } }
+            { massInput | state = Invalid { unit = Mass.Unit.fromMass mass, amount = updatedAmount } }
 
 
 updateAmountAndValidate : String -> MassInput msg -> Result ValidationError Mass
@@ -121,46 +82,42 @@ updateAmountAndValidate updatedAmount =
 
 toggleUnit : MassInput msg -> MassInput msg
 toggleUnit ({ state } as massInput) =
-    let
-        toggle unit =
-            case unit of
-                Lb ->
-                    Kg
-
-                Kg ->
-                    Lb
-    in
     case state of
         Pristine unit ->
-            { massInput | state = Pristine (toggle unit) }
+            { massInput | state = Pristine <| Mass.Unit.toggle unit }
 
         Invalid ({ unit } as input) ->
-            { massInput | state = Invalid { input | unit = toggle unit } }
+            { massInput | state = Invalid { input | unit = Mass.Unit.toggle unit } }
 
         Valid mass ->
-            { massInput | state = Valid (Mass.toggle mass) }
+            { massInput | state = Valid <| Mass.toggle mass }
 
 
 unitButton : MassInput msg -> Html msg
 unitButton { toggleUnitMsg, state } =
     let
-        ( disabled, unitHtml ) =
+        button : Mass.Unit.Button msg
+        button =
             case state of
                 Pristine unit ->
-                    ( False, unitToHtml unit )
+                    { toggleMsg = toggleUnitMsg
+                    , disabled = True
+                    , unit = unit
+                    }
 
                 Invalid { unit } ->
-                    ( True, unitToHtml unit )
+                    { toggleMsg = toggleUnitMsg
+                    , disabled = True
+                    , unit = unit
+                    }
 
                 Valid mass ->
-                    ( False, mass |> unitFromMass |> unitToHtml )
+                    { toggleMsg = toggleUnitMsg
+                    , disabled = False
+                    , unit = mass |> Mass.Unit.fromMass
+                    }
     in
-    Button.outlineSecondary
-        { id = "mass"
-        , onClickMsg = toggleUnitMsg
-        , value = unitHtml
-        , disabled = disabled
-        }
+    Mass.Unit.button button
 
 
 amountInputHtml : MassInput msg -> Html msg
